@@ -1,0 +1,333 @@
+{
+  "name": "facebook post",
+  "nodes": [
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v22.0",
+        "node": "592713727265135",
+        "edge": "photos",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "message",
+                "value": "={{ $json.data }}"
+              },
+              {
+                "name": "url",
+                "value": "https://picsum.photos/200/300"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        -40
+      ],
+      "id": "f590c376-a92e-4270-9006-3adccccf7af9",
+      "name": "Facebook Graph API",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "kw1YfeG0dwxaPpld",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant, with weather tool and wiki tool. find out the latitude and longitude information of a location then use the weather tool for current weather and weather forecast. For general info, use the wiki tool."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        60,
+        -20
+      ],
+      "id": "ad709a6f-cfa9-4501-9a21-c87743228260",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        240
+      ],
+      "id": "404a6f59-e370-4e21-bffc-9813edc39f4c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "7rdN6Ef1DW7vKAbA",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "30ff9993-e76e-4b07-b7b9-f2a28bd238d2",
+      "name": "Wikipedia",
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "position": [
+        280,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "toolDescription": "Fetch current temperature for given coordinates.",
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "latitude"
+            },
+            {
+              "name": "longitude"
+            },
+            {
+              "name": "forecast_days",
+              "valueProvider": "fieldValue",
+              "value": "1"
+            },
+            {
+              "name": "hourly",
+              "valueProvider": "fieldValue",
+              "value": "temperature_2m"
+            }
+          ]
+        }
+      },
+      "id": "4f3ba6b8-8bf8-4be8-ae9f-cd6eea429742",
+      "name": "Weather HTTP Request",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "position": [
+        120,
+        240
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -120,
+        -20
+      ],
+      "id": "ee8f086e-661f-422d-8553-5125d9db2079",
+      "name": "When chat message received",
+      "webhookId": "5b8ac2d8-9829-4c3d-9572-e9e6c902aad0"
+    },
+    {
+      "parameters": {
+        "jsCode": "// const data = $input.first().json.output;\n\n// return {\n//   output: data\n// };\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        -20
+      ],
+      "id": "13a248da-6448-4e80-a6a5-3ee3b17d2842",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "96734837-8522-4914-be9d-b51d3f0f8191",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        -20
+      ],
+      "id": "b5798d72-a5cf-422e-86ec-74e49ee8ff31",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "https://picsum.photos/200/300",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        -20
+      ],
+      "id": "923a2bdf-4e0c-461a-a6b8-08675299737c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bf2c60c9-f69e-4e9c-90a5-374638d1df83",
+              "name": "data",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        -20
+      ],
+      "id": "72d0ecc3-6115-4eab-90de-1118dcb3105d",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d21f5551-5cfa-4ee6-80d8-b96017bd012b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "76e5f96cfa9819f7d28ecb93dc751a008ede0f116336a2f89cf98a1dc1540c53"
+  },
+  "id": "NUMLylApBHe6P2bI",
+  "tags": []
+}
